@@ -1,0 +1,20 @@
+PODS:
+  - Masonry (1.1.0)
+  - MobileVLCKit-unstable (3.0.0a50)
+  - SDWebImage (4.2.2):
+    - SDWebImage/Core (= 4.2.2)
+  - SDWebImage/Core (4.2.2)
+
+DEPENDENCIES:
+  - Masonry
+  - MobileVLCKit-unstable (~> 3.0.0a50)
+  - SDWebImage (~> 4.2.2)
+
+SPEC CHECKSUMS:
+  Masonry: 678fab65091a9290e40e2832a55e7ab731aad201
+  MobileVLCKit-unstable: 2fc757a551000dba5288cda37ac38d5f20322ad7
+  SDWebImage: 89a9d32cd520bbb46eb14e541d5109b3564af198
+
+PODFILE CHECKSUM: a68c9b359673e628450921f449dc57de3893c517
+
+COCOAPODS: 1.3.1
