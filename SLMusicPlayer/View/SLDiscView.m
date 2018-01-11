@@ -99,7 +99,7 @@
         [self.displayLink removeFromRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
         [self.displayLink invalidate];
         self.displayLink = nil;
-        self.imageView.transform = CGAffineTransformIdentity;
+        self.discImageView.transform = CGAffineTransformIdentity;
     }
 }
 

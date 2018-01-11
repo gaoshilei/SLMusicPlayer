@@ -13,7 +13,9 @@ const CGFloat topWrapperH       = 50.f;
 const CGFloat sliderWrapperH    = 30.f;
 const CGFloat bottomWrapperH    = 75.f;
 
-@interface SLMusicControlView()
+@interface SLMusicControlView()<SLMusicSliderDelegate> {
+    BOOL _isBuffering;
+}
 
 @property (nonatomic, strong) UIButton  *likeBtn;
 @property (nonatomic, strong) UIButton  *downloadBtn;
@@ -101,16 +103,21 @@ const CGFloat bottomWrapperH    = 75.f;
     [self.currentLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.bottom.equalTo(self.sliderWrapper);
         make.left.equalTo(self.sliderWrapper).offset(15.f);
+        make.right.equalTo(self.slider.mas_left).offset(-10.f);
     }];
     [self.totalLabel mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.bottom.equalTo(self.sliderWrapper);
         make.right.equalTo(self.sliderWrapper).offset(-15.f);
+        make.left.equalTo(self.slider.mas_right).offset(10.f);
     }];
     [self.slider mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.bottom.equalTo(self.sliderWrapper);
-        make.left.equalTo(self.currentLabel.mas_right).offset(30.f);
-        make.right.equalTo(self.totalLabel.mas_left).offset(-30.f);
+        make.left.equalTo(self.sliderWrapper).offset(75.f);
+        make.right.equalTo(self.sliderWrapper).offset(-75.f);
     }];
+    [self.currentLabel setContentCompressionResistancePriority:UILayoutPriorityDefaultLow forAxis:UILayoutConstraintAxisHorizontal];
+    [self.totalLabel setContentCompressionResistancePriority:UILayoutPriorityDefaultLow forAxis:UILayoutConstraintAxisHorizontal];
+    [self.slider setContentCompressionResistancePriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
     //播放控制区域
     [self.playBtn mas_makeConstraints:^(MASConstraintMaker *make) {
         make.center.equalTo(self.bottomWrapper);
@@ -242,8 +249,10 @@ const CGFloat bottomWrapperH    = 75.f;
     if (!_currentLabel) {
         _currentLabel = [[UILabel alloc] init];
         _currentLabel.textColor = [UIColor whiteColor];
-        _currentLabel.font = [UIFont systemFontOfSize:10.f];
-        _currentLabel.text = @"00:00:00";
+        _currentLabel.text = @"00:00";
+        _currentLabel.adjustsFontSizeToFitWidth = YES;
+        _currentLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
+        _currentLabel.textAlignment = NSTextAlignmentCenter;
     }
     return _currentLabel;
 }
@@ -252,10 +261,29 @@ const CGFloat bottomWrapperH    = 75.f;
     if (!_totalLabel) {
         _totalLabel = [[UILabel alloc] init];
         _totalLabel.textColor = [UIColor whiteColor];
-        _totalLabel.font = [UIFont systemFontOfSize:10.f];
-        _totalLabel.text = @"23:59:59";
+        _totalLabel.text = @"00:00";
+        _totalLabel.adjustsFontSizeToFitWidth = YES;
+        _totalLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
+        _totalLabel.textAlignment = NSTextAlignmentCenter;
     }
     return _totalLabel;
+}
+
+- (SLMusicSliderView *)slider {
+    if (!_slider) {
+        _slider = [[SLMusicSliderView alloc] init];
+        [_slider setBackgroundImage:[UIImage imageNamed:@"cm2_fm_playbar_btn"] forState:UIControlStateNormal];
+        [_slider setBackgroundImage:[UIImage imageNamed:@"cm2_fm_playbar_btn"] forState:UIControlStateSelected];
+        [_slider setBackgroundImage:[UIImage imageNamed:@"cm2_fm_playbar_btn"] forState:UIControlStateHighlighted];
+        [_slider setThumbImage:[UIImage imageNamed:@"cm2_fm_playbar_btn_dot"] forState:UIControlStateNormal];
+        [_slider setThumbImage:[UIImage imageNamed:@"cm2_fm_playbar_btn_dot"] forState:UIControlStateSelected];
+        [_slider setThumbImage:[UIImage imageNamed:@"cm2_fm_playbar_btn_dot"] forState:UIControlStateHighlighted];
+        _slider.maximumTrackImage = [UIImage imageNamed:@"cm2_fm_playbar_bg"];
+        _slider.minimumTrackImage = [UIImage imageNamed:@"cm2_fm_playbar_curr"];
+        _slider.bufferTrackImage  = [UIImage imageNamed:@"cm2_fm_playbar_ready"];
+        _slider.delegate = self;
+    }
+    return _slider;
 }
 
 #pragma mark - User Interaction
@@ -314,6 +342,69 @@ const CGFloat bottomWrapperH    = 75.f;
         [self.delegate musicControl:self didClickList:button];
     }
     NSLog(@"%s",__func__);
+}
+
+#pragma mark - public method
+- (void)showAndHideBufferIndicator {
+    if (_isBuffering) {
+        _isBuffering = NO;
+        [self.slider hideBufferIndicator];
+    }else{
+        _isBuffering = YES;
+        [self.slider showBufferIndicator];
+    }
+}
+
+- (void)stopPlay {
+    self.playBtn.selected = NO;
+    self.totalTime = nil;
+}
+
+- (void)startPlay {
+    self.playBtn.selected = YES;
+}
+
+- (void)setCurrentTime:(NSString *)currentTime {
+    _currentTime = currentTime;
+    self.currentLabel.text = currentTime;
+}
+
+- (void)setTotalTime:(NSString *)totalTime {
+    if (_totalTime) {
+        return;
+    }
+    _totalTime = totalTime;
+    self.totalLabel.text = totalTime;
+}
+
+- (void)setCurrentValue:(CGFloat)currentValue {
+    _currentValue = currentValue;
+    self.slider.currentValue = currentValue;
+}
+
+#pragma mark - SLMusicSliderDelegate
+- (void)slSlider:(SLMusicSliderView *)slider didTappedProgress:(CGFloat)progress {
+    if ([self.delegate respondsToSelector:@selector(musicControl:didSliderTapped:)]) {
+        [self.delegate musicControl:self didSliderTapped:progress];
+    }
+}
+
+- (void)slSlider:(SLMusicSliderView *)slider didTouchBegan:(CGFloat)value {
+    if ([self.delegate respondsToSelector:@selector(musicControl:didSliderTouchBegan:)]) {
+        [self.delegate musicControl:self didSliderTouchBegan:value];
+    }
+}
+
+- (void)slSlider:(SLMusicSliderView *)slider didTouchEndded:(CGFloat)value {
+    if ([self.delegate respondsToSelector:@selector(musicControl:didSliderTouchEnded:)]) {
+        [self.delegate musicControl:self didSliderTouchEnded:value];
+    }
+}
+
+- (void)slSlider:(SLMusicSliderView *)slider didDragChangeValue:(CGFloat)value {
+    if ([self.delegate respondsToSelector:@selector(musicControl:didSliderTouchChanged:)]) {
+        [self.delegate musicControl:self didSliderTouchChanged:value];
+    }
 }
 
 @end

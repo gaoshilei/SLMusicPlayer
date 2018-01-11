@@ -21,10 +21,23 @@
 - (void)musicControl:(SLMusicControlView *)control didClickNext:(UIButton *)nextBtn;
 - (void)musicControl:(SLMusicControlView *)control didClickList:(UIButton *)listBtn;
 
+- (void)musicControl:(SLMusicControlView *)control didSliderTapped:(CGFloat)value;
+- (void)musicControl:(SLMusicControlView *)control didSliderTouchBegan:(CGFloat)value;
+- (void)musicControl:(SLMusicControlView *)control didSliderTouchChanged:(CGFloat)value;
+- (void)musicControl:(SLMusicControlView *)control didSliderTouchEnded:(CGFloat)value;
+
 @end
 
 @interface SLMusicControlView : UIView
 
-@property (nonatomic, weak) id<SLMusicControlDelegate> delegate;
+@property (nonatomic, copy  ) NSString *currentTime;
+@property (nonatomic, copy  ) NSString *totalTime;
+@property (nonatomic, assign) CGFloat  currentValue;
+@property (nonatomic, weak  ) id<SLMusicControlDelegate> delegate;
+
+- (void)startPlay;
+- (void)stopPlay;
+
+- (void)showAndHideBufferIndicator;
 
 @end

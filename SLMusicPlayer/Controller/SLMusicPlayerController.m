@@ -23,7 +23,9 @@
 
 @end
 
-@interface SLMusicPlayerController ()<SLMusicControlDelegate,SLPlayerDelegate>
+@interface SLMusicPlayerController ()<SLMusicControlDelegate,SLPlayerDelegate> {
+    BOOL _isDragging;
+}
 
 @property (nonatomic, strong) SLMusicControlView *musicControl;
 @property (nonatomic, strong) SLDiscView *discView;
@@ -32,6 +34,7 @@
 @property (nonatomic, strong) UILabel *singerNameLabel;
 @property (nonatomic, strong) UIView *navigatorWrapper;
 @property (nonatomic, strong) SLPlayer *player;
+@property (nonatomic, assign) double totalTime;
 
 @end
 
@@ -61,6 +64,7 @@ static SLMusicPlayerController *shareVC = nil;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    _isDragging = NO;
     [self p_initSubviews];
     SLMusicModel *model = [SLMusicModel new];
     [self setSongModel:model];
@@ -133,6 +137,7 @@ static SLMusicPlayerController *shareVC = nil;
     self.songNameLabel.text = _songModel.songName;
     self.singerNameLabel.text = _songModel.singerName;
     [self.player setPlayUrlStr:_songModel.songLink];
+    [self.player play];
 }
 
 #pragma mark - lazy load
@@ -155,7 +160,7 @@ static SLMusicPlayerController *shareVC = nil;
 - (UIImageView *)bgImageView {
     if (!_bgImageView) {
         _bgImageView = [[UIImageView alloc] initWithFrame:self.view.bounds];
-        _bgImageView.contentMode = UIViewContentModeScaleAspectFit;
+        _bgImageView.contentMode = UIViewContentModeScaleAspectFill;
         UIVisualEffect *blur = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
         UIVisualEffectView *blurView = [[UIVisualEffectView alloc] initWithEffect:blur];
         blurView.frame = _bgImageView.bounds;
@@ -210,6 +215,24 @@ static SLMusicPlayerController *shareVC = nil;
     }
 }
 
+- (void)p_stopPlay {
+    [self.discView stopAnim];
+    [self.player stop];
+    [self.musicControl stopPlay];
+}
+
+- (void)p_startPlay {
+    [self.discView startAnim];
+    [self.player play];
+    [self.musicControl startPlay];
+}
+
+- (void)p_pause {
+    [self.discView pauseAnim];
+    [self.player pause];
+    [self.musicControl stopPlay];
+}
+
 #pragma mark - Public Method
 
 - (void)setSongModel:(SLMusicModel *)songModel {
@@ -230,14 +253,33 @@ static SLMusicPlayerController *shareVC = nil;
 
 - (void)musicControl:(SLMusicControlView *)control didClickPlay:(UIButton *)playBtn {
     if (!playBtn.selected) {
-        [self.player play];
-        [self.discView startAnim];
-        playBtn.selected = YES;
+        [self p_startPlay];
     }else {
-        [self.discView pauseAnim];
-        [self.player pause];
-        playBtn.selected = NO;
+        [self p_pause];
     }
+}
+
+- (void)musicControl:(SLMusicControlView *)control didSliderTapped:(CGFloat)value {
+    [self.player setProgress:value];
+    self.musicControl.currentValue = value;
+    self.musicControl.currentTime = [self.player formatTime:@(self.totalTime*value)];
+}
+
+- (void)musicControl:(SLMusicControlView *)control didSliderTouchBegan:(CGFloat)value {
+    //拖拽时暂停播放
+    [self p_pause];
+    _isDragging = YES;
+}
+
+- (void)musicControl:(SLMusicControlView *)control didSliderTouchEnded:(CGFloat)value {
+    [self.player setProgress:value];
+    _isDragging = NO;
+    [self p_startPlay];
+}
+
+- (void)musicControl:(SLMusicControlView *)control didSliderTouchChanged:(CGFloat)value {
+    self.musicControl.currentTime = [self.player formatTime:@(self.totalTime*value)];
+    self.musicControl.currentValue = value;
 }
 
 #pragma mark - SLPlayerDelegate
@@ -247,6 +289,7 @@ static SLMusicPlayerController *shareVC = nil;
         case SLMusicPlayerStatusEnded: {
             [self.discView stopAnim];
             [self.player stop];
+            [self.musicControl stopPlay];
         }
             break;
         default:
@@ -254,4 +297,24 @@ static SLMusicPlayerController *shareVC = nil;
     }
 }
 
+- (void)slPlayer:(SLPlayer *)player formatCurrentTime:(NSString *)currentTimeStr formatTotalTime:(NSString *)totalTimeStr progress:(float)progress {
+    if (_isDragging) {
+        return;
+    }
+    self.musicControl.currentValue = progress;
+    self.musicControl.currentTime = currentTimeStr;
+    self.musicControl.totalTime = totalTimeStr;
+}
+
+- (void)slPlayer:(SLPlayer *)player duration:(double)duration {
+    self.totalTime = duration;
+}
+
+- (void)slPlayerIsPlaying:(SLPlayer *)player {
+    [self.musicControl showAndHideBufferIndicator];
+}
+
+- (void)slPlayerIsBuffering:(SLPlayer *)player {
+    [self.musicControl showAndHideBufferIndicator];
+}
 @end

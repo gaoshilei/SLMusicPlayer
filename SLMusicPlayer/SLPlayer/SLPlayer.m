@@ -9,7 +9,9 @@
 #import "SLPlayer.h"
 #import <MobileVLCKit/MobileVLCKit.h>
 
-@interface SLPlayer()<VLCMediaPlayerDelegate>
+@interface SLPlayer()<VLCMediaPlayerDelegate> {
+    NSString *_totalTime;
+}
 
 @property (nonatomic, strong) VLCMediaListPlayer *player;
 @property (nonatomic, assign) SLMusicPlayerStatus status;
@@ -60,7 +62,11 @@ static SLPlayer *sharePlayer = nil;
 }
 
 - (void)play {
+    if (self.isPlaying) {
+        return;
+    }
     NSLog(@"%s",__func__);
+    _totalTime = nil;
     [self.player play];
 }
 
@@ -72,6 +78,15 @@ static SLPlayer *sharePlayer = nil;
 - (void)stop {
     NSLog(@"%s",__func__);
     [self.player stop];
+}
+
+- (void)setProgress:(float)progress {
+    _progress = progress;
+    self.player.mediaPlayer.position = progress;
+}
+
+- (BOOL)isPlaying {
+    return self.status == SLMusicPlayerStatusPlaying;
 }
 
 #pragma mark - VLCMediaPlayerDelegate
@@ -90,9 +105,13 @@ static SLPlayer *sharePlayer = nil;
             self.status = SLMusicPlayerStatusOpening;
             NSLog(@"数据流开始传输");
             break;
-        case VLCMediaPlayerStateBuffering:
+        case VLCMediaPlayerStateBuffering: {
             self.status = SLMusicPlayerStatusBuffering;
+            if ([self.delegate respondsToSelector:@selector(slPlayerIsBuffering:)]) {
+                [self.delegate slPlayerIsBuffering:self];
+            }
             NSLog(@"数据流缓冲中");
+        }
             break;
         case VLCMediaPlayerStatePaused:
             self.status = SLMusicPlayerStatusPaused;
@@ -109,6 +128,12 @@ static SLPlayer *sharePlayer = nil;
     }
     if (self.player.mediaPlayer.isPlaying) {
         self.status = SLMusicPlayerStatusPlaying;
+        NSLog(@"==播放中==");
+        if ([self.delegate respondsToSelector:@selector(slPlayerIsPlaying:)]) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.3f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [self.delegate slPlayerIsPlaying:self];
+            });
+        }
     }
     if ([self.delegate respondsToSelector:@selector(slPlayer:playerStateChanged:)]) {
         [self.delegate slPlayer:self playerStateChanged:self.status];
@@ -124,18 +149,33 @@ static SLPlayer *sharePlayer = nil;
         [self.delegate slPlayer:self currentTime:time.value totalTime:totalTimeValue progress:progress];
     }
     if ([self.delegate respondsToSelector:@selector(slPlayer:formatCurrentTime:formatTotalTime:progress:)]) {
-        NSString *currentTimeStr = [self p_formatTime:time.value];
-        NSString *totalTimeStr = [self p_formatTime:totalTimeValue];
+        NSString *currentTimeStr = [self formatTime:time.value];
+        NSString *totalTimeStr = [self formatTime:totalTimeValue];
         [self.delegate slPlayer:self formatCurrentTime:currentTimeStr formatTotalTime:totalTimeStr progress:progress];
+    }
+    if (!_totalTime) {
+        _totalTime = [NSString stringWithFormat:@"%@",totalTimeValue];
+        if ([self.delegate respondsToSelector:@selector(slPlayer:duration:)]) {
+            [self.delegate slPlayer:self duration:totalTimeValue.doubleValue];
+        }
     }
 }
 
-- (NSString *)p_formatTime:(NSNumber *)timeValue {
-    NSDate *date = [NSDate dateWithTimeIntervalSince1970:timeValue.doubleValue/1000];
-    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-    [formatter setDateFormat:@"HH:mm:ss"];
-    NSString *timeStr = [formatter stringFromDate:date];
-    return timeStr;
+- (NSString *)formatTime:(NSNumber *)timeValue {
+    NSInteger time = timeValue.integerValue / 1000;
+    if (timeValue.integerValue%1000>0) {
+        time++;
+    }
+    if (time < 3600) {
+        NSInteger minutes = time / 60;
+        NSInteger seconds = time % 60;
+        return [NSString stringWithFormat:@"%02zd:%02zd",minutes,seconds];
+    }else {
+        NSInteger hours = time / 3600;
+        NSInteger minutes = (time % 3600) / 60;
+        NSInteger seconds = (time % 3600) % 60;
+        return [NSString stringWithFormat:@"%02zd:%02zd:%02zd",hours,minutes,seconds];
+    }
 }
 
 

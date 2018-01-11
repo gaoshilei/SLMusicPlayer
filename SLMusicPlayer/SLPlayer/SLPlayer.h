@@ -44,6 +44,21 @@ typedef NS_ENUM(NSInteger, SLMusicPlayerStatus) {
  */
 - (void)slPlayer:(SLPlayer *)player formatCurrentTime:(NSString *)currentTimeStr formatTotalTime:(NSString *)totalTimeStr progress:(float)progress;
 
+/**
+ 获取总时间（毫秒）
+ */
+- (void)slPlayer:(SLPlayer *)player duration:(double)duration;
+
+/**
+ 开始播放
+ */
+- (void)slPlayerIsPlaying:(SLPlayer *)player;
+
+/**
+ 正在缓存
+ */
+- (void)slPlayerIsBuffering:(SLPlayer *)player;
+
 @end
 
 @interface SLPlayer : NSObject
@@ -54,10 +69,9 @@ typedef NS_ENUM(NSInteger, SLMusicPlayerStatus) {
 @property (nonatomic, assign) float progress;
 
 @property (nonatomic, weak  ) id<SLPlayerDelegate> delegate;
-
+@property (nonatomic, assign, readonly) BOOL isPlaying;
 
 + (instancetype)shareInstance;
-
 /**
  播放
  */
@@ -72,5 +86,10 @@ typedef NS_ENUM(NSInteger, SLMusicPlayerStatus) {
  停止
  */
 - (void)stop;
+
+/**
+ 格式化时间
+ */
+- (NSString *)formatTime:(NSNumber *)timeValue;
 
 @end
