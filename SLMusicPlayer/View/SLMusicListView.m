@@ -83,8 +83,8 @@ static const NSString *SLMusicReuseCellIdentifier = @"SLMusicReuseCellIdentifier
     }];
     
     UIButton *downloadBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    [downloadBtn setImage:[UIImage imageNamed:@"cm2_icn_dld"] forState:UIControlStateNormal];
-    [downloadBtn setImage:[UIImage imageNamed:@"cm2_icn_dld_prs"] forState:UIControlStateHighlighted];
+    [downloadBtn setImage:[UIImage imageNamed:@"list_download"] forState:UIControlStateNormal];
+    [downloadBtn setImage:[UIImage imageNamed:@"list_download"] forState:UIControlStateHighlighted];
     [downloadBtn addTarget:self action:@selector(p_downloadBtnClick:) forControlEvents:UIControlEventTouchUpInside];
     [self.contentView addSubview:downloadBtn];
     
@@ -224,18 +224,18 @@ static const NSString *SLMusicReuseCellIdentifier = @"SLMusicReuseCellIdentifier
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     UIView *header = [[UIView alloc] init];
     header.backgroundColor = [UIColor whiteColor];
-    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(30, 0, 100, 60)];
+    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(30, 0, 100, 48)];
     [header addSubview:titleLabel];
     titleLabel.textAlignment = NSTextAlignmentLeft;
     titleLabel.text = @"播放列表";
-    titleLabel.font = [UIFont systemFontOfSize:18.f];
+    titleLabel.font = [UIFont boldSystemFontOfSize:18.f];
     titleLabel.textColor = [UIColor blackColor];
     UIView *bottomLine = [[UIView alloc] init];
     bottomLine.backgroundColor = [UIColor lightGrayColor];
     [header addSubview:bottomLine];
     [bottomLine mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.right.bottom.equalTo(header);
-        make.height.mas_equalTo(1);
+        make.height.mas_equalTo(.5f);
     }];
     return header;
 }
