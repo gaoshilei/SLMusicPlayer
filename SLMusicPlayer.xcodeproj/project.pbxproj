@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6817C3D0AF27C65669BE326B /* libPods-SLMusicPlayer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CB80D4D0FE9720BCBAD2195 /* libPods-SLMusicPlayer.a */; };
+		BD3D9D6C200C49C4008C944E /* musicList.json in Resources */ = {isa = PBXBuildFile; fileRef = BD3D9D6B200C49C4008C944E /* musicList.json */; };
 		BD7E2C1E1FFCBBAE00569BF2 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = BD7E2C1D1FFCBBAE00569BF2 /* AppDelegate.m */; };
 		BD7E2C241FFCBBAE00569BF2 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BD7E2C221FFCBBAE00569BF2 /* Main.storyboard */; };
 		BD7E2C261FFCBBAE00569BF2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BD7E2C251FFCBBAE00569BF2 /* Assets.xcassets */; };
@@ -19,11 +20,13 @@
 		BD7E2C401FFCC3AC00569BF2 /* SLMusicSliderView.m in Sources */ = {isa = PBXBuildFile; fileRef = BD7E2C3F1FFCC3AC00569BF2 /* SLMusicSliderView.m */; };
 		BD7E2C431FFCCB1100569BF2 /* SLDiscView.m in Sources */ = {isa = PBXBuildFile; fileRef = BD7E2C421FFCCB1100569BF2 /* SLDiscView.m */; };
 		BD7E2C451FFE541700569BF2 /* SLMusicAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BD7E2C441FFE541700569BF2 /* SLMusicAssets.xcassets */; };
+		BD844175200CCF3A002F894F /* SLMusicListView.m in Sources */ = {isa = PBXBuildFile; fileRef = BD844174200CCF3A002F894F /* SLMusicListView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		5CB80D4D0FE9720BCBAD2195 /* libPods-SLMusicPlayer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-SLMusicPlayer.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		987E022B077BD5F11D3C94CD /* Pods-SLMusicPlayer.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SLMusicPlayer.debug.xcconfig"; path = "Pods/Target Support Files/Pods-SLMusicPlayer/Pods-SLMusicPlayer.debug.xcconfig"; sourceTree = "<group>"; };
+		BD3D9D6B200C49C4008C944E /* musicList.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = musicList.json; sourceTree = "<group>"; };
 		BD7E2C191FFCBBAE00569BF2 /* SLMusicPlayer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SLMusicPlayer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD7E2C1C1FFCBBAE00569BF2 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		BD7E2C1D1FFCBBAE00569BF2 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -43,6 +46,8 @@
 		BD7E2C411FFCCB1100569BF2 /* SLDiscView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SLDiscView.h; sourceTree = "<group>"; };
 		BD7E2C421FFCCB1100569BF2 /* SLDiscView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SLDiscView.m; sourceTree = "<group>"; };
 		BD7E2C441FFE541700569BF2 /* SLMusicAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = SLMusicAssets.xcassets; sourceTree = "<group>"; };
+		BD844173200CCF3A002F894F /* SLMusicListView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SLMusicListView.h; sourceTree = "<group>"; };
+		BD844174200CCF3A002F894F /* SLMusicListView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SLMusicListView.m; sourceTree = "<group>"; };
 		D521854F5AA6F2DC6333DFF0 /* Pods-SLMusicPlayer.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SLMusicPlayer.release.xcconfig"; path = "Pods/Target Support Files/Pods-SLMusicPlayer/Pods-SLMusicPlayer.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -99,6 +104,7 @@
 				BD7E2C271FFCBBAE00569BF2 /* LaunchScreen.storyboard */,
 				BD7E2C2A1FFCBBAE00569BF2 /* Info.plist */,
 				BD7E2C2B1FFCBBAE00569BF2 /* main.m */,
+				BD3D9D6B200C49C4008C944E /* musicList.json */,
 			);
 			path = SLMusicPlayer;
 			sourceTree = "<group>";
@@ -121,6 +127,8 @@
 				BD7E2C3F1FFCC3AC00569BF2 /* SLMusicSliderView.m */,
 				BD7E2C411FFCCB1100569BF2 /* SLDiscView.h */,
 				BD7E2C421FFCCB1100569BF2 /* SLDiscView.m */,
+				BD844173200CCF3A002F894F /* SLMusicListView.h */,
+				BD844174200CCF3A002F894F /* SLMusicListView.m */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -207,6 +215,7 @@
 				BD7E2C451FFE541700569BF2 /* SLMusicAssets.xcassets in Resources */,
 				BD7E2C261FFCBBAE00569BF2 /* Assets.xcassets in Resources */,
 				BD7E2C241FFCBBAE00569BF2 /* Main.storyboard in Resources */,
+				BD3D9D6C200C49C4008C944E /* musicList.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -271,6 +280,7 @@
 				BD7E2C3D1FFCC39300569BF2 /* SLMusicControlView.m in Sources */,
 				BD7E2C351FFCBC5300569BF2 /* SLMusicPlayerController.m in Sources */,
 				BD7E2C401FFCC3AC00569BF2 /* SLMusicSliderView.m in Sources */,
+				BD844175200CCF3A002F894F /* SLMusicListView.m in Sources */,
 				BD7E2C3A1FFCBE5500569BF2 /* SLPlayer.m in Sources */,
 				BD7E2C431FFCCB1100569BF2 /* SLDiscView.m in Sources */,
 				BD7E2C2C1FFCBBAE00569BF2 /* main.m in Sources */,

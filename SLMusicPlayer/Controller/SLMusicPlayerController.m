@@ -13,15 +13,6 @@
 #import <Masonry.h>
 #import <UIImageView+WebCache.h>
 
-@interface SLMusicModel()
-
-@property (nonatomic, strong) NSURL *songDiscUrl;
-@property (nonatomic, strong) NSURL *songBgUrl;
-
-@end
-@implementation SLMusicModel
-
-@end
 
 @interface SLMusicPlayerController ()<SLMusicControlDelegate,SLPlayerDelegate> {
     BOOL _isDragging;
@@ -35,6 +26,8 @@
 @property (nonatomic, strong) UIView *navigatorWrapper;
 @property (nonatomic, strong) SLPlayer *player;
 @property (nonatomic, assign) double totalTime;
+@property (nonatomic, assign) SLPlayerLoopStyle loopStyle;
+@property (nonatomic, strong) SLMusicModel *currentModel;
 
 @end
 
@@ -65,9 +58,8 @@ static SLMusicPlayerController *shareVC = nil;
 - (void)viewDidLoad {
     [super viewDidLoad];
     _isDragging = NO;
+    _loopStyle = SLPlayerLoopStyleLooping;
     [self p_initSubviews];
-    SLMusicModel *model = [SLMusicModel new];
-    [self setSongModel:model];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -78,6 +70,14 @@ static SLMusicPlayerController *shareVC = nil;
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [self.navigationController setNavigationBarHidden:NO animated:animated];
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    if (!self.player.isPlaying) {
+        _currentModel = self.musicList[0];
+        [self p_initSongData:_currentModel];
+    }
 }
 
 - (void)p_initSubviews {
@@ -131,13 +131,16 @@ static SLMusicPlayerController *shareVC = nil;
     }];
 }
 
-- (void)p_initData {
-    [self.bgImageView sd_setImageWithURL:_songModel.songBgUrl placeholderImage:[UIImage imageNamed:@"cm2_fm_bg"]];
-    self.discView.imageUrl = _songModel.songDiscUrl;
-    self.songNameLabel.text = _songModel.songName;
-    self.singerNameLabel.text = _songModel.singerName;
-    [self.player setPlayUrlStr:_songModel.songLink];
-    [self.player play];
+- (void)p_initSongData:(SLMusicModel *)model {
+    self.discView.imageUrl = [NSURL URLWithString:model.music_picRadio];
+    if (!model.music_picRadio || [model.music_picRadio isEqualToString:@""] || [model.music_picRadio isKindOfClass:[NSNull class]]) {
+        model.music_cover = model.music_picRadio;
+    }
+    [self.bgImageView sd_setImageWithURL:[NSURL URLWithString:model.music_cover] placeholderImage:[UIImage imageNamed:@"cm2_fm_bg"]];
+    self.songNameLabel.text = model.music_name;
+    self.singerNameLabel.text = model.music_artist;
+    [self.player setPlayUrlStr:model.music_link];
+    [self p_startPlay];
 }
 
 #pragma mark - lazy load
@@ -216,15 +219,15 @@ static SLMusicPlayerController *shareVC = nil;
 }
 
 - (void)p_stopPlay {
-    [self.discView stopAnim];
     [self.player stop];
+    [self.discView stopAnim];
     [self.musicControl stopPlay];
 }
 
 - (void)p_startPlay {
     [self.discView startAnim];
-    [self.player play];
     [self.musicControl startPlay];
+    [self.player play];
 }
 
 - (void)p_pause {
@@ -233,20 +236,62 @@ static SLMusicPlayerController *shareVC = nil;
     [self.musicControl stopPlay];
 }
 
+- (void)p_loopingSwitchPrev:(BOOL)isPrev {
+    NSInteger currentIndex = [self.musicList indexOfObject:_currentModel];
+    NSInteger targetIndex;
+    if (isPrev) {
+        targetIndex = --currentIndex<0?(self.musicList.count-1):currentIndex--;
+    }else{
+        targetIndex = ++currentIndex>(self.musicList.count-1)?0:currentIndex++;
+    }
+    _currentModel = self.musicList[targetIndex];
+    NSLog(@"===现在播放第%ld首歌曲===",targetIndex+1);
+    [self p_stopPlay];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.1f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self p_initSongData:_currentModel];
+    });
+}
+
+- (void)p_singleCycleSwitch {
+    [self p_replay];
+}
+
+- (void)p_randomSwitch:(BOOL)isPrev {
+    NSInteger currentIndex = [self.musicList indexOfObject:_currentModel];
+    NSInteger targetIndex;
+    if (isPrev) {
+        if (currentIndex == 0) {
+            targetIndex = arc4random_uniform((uint32_t)(self.musicList.count-2)) + 1;
+        }else {
+            targetIndex = arc4random_uniform((uint32_t)currentIndex-1);
+        }
+    }else {
+        if (currentIndex == self.musicList.count-1) {
+            targetIndex = arc4random_uniform((uint32_t)(currentIndex-1));
+        } else {
+            targetIndex = arc4random_uniform((uint32_t)(self.musicList.count-1-currentIndex)) + currentIndex;
+            targetIndex = currentIndex?targetIndex+1:targetIndex;
+        }
+    }
+    NSLog(@"random>>>currentIndex：%ld===targetIndex：%ld",currentIndex,targetIndex);
+    _currentModel = self.musicList[targetIndex];
+    [self p_stopPlay];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.1f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self p_initSongData:_currentModel];
+    });
+}
+
+- (void)p_replay {
+    [self p_stopPlay];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.1f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self p_startPlay];
+    });
+}
+
 #pragma mark - Public Method
 
-- (void)setSongModel:(SLMusicModel *)songModel {
-    _songModel = songModel;
-    /** 测试数据 */
-    _songModel.songBgPic = @"http://qukufile2.qianqian.com/data2/pic/046d17bfa056e736d873ec4f891e338f/540336142/540336142.jpg@s_0,w_300";
-    _songModel.songDiscPic = @"http://musicdata.baidu.com/data2/pic/4a5941d2143e0fbe1b1fb315fa6bafbf/551079935/551079935.jpg@s_1,w_300,h_300";
-    _songModel.songLink = @"http://zhangmenshiting.qianqian.com/data2/music/42613148/305552201600128.mp3?xcode=e8e49774847ac00d2b8f63f9ac723f36";
-    _songModel.songName = @"退后";
-    _songModel.singerName = @"周杰伦";
-    /** 测试数据 */
-    _songModel.songBgUrl = [NSURL URLWithString:_songModel.songBgPic];
-    _songModel.songDiscUrl = [NSURL URLWithString:_songModel.songDiscPic];
-    [self p_initData];
+- (void)setMusicList:(NSArray<SLMusicModel *> *)musicList {
+    _musicList = musicList;
 }
 
 #pragma mark - SLMusicControlDelegate
@@ -257,6 +302,62 @@ static SLMusicPlayerController *shareVC = nil;
     }else {
         [self p_pause];
     }
+}
+- (void)musicControl:(SLMusicControlView *)control didClickLoop:(UIButton *)loopBtn {
+    switch (_loopStyle) {
+        case SLPlayerLoopStyleLooping: {
+            _loopStyle = SLPlayerLoopStyleSingleCycle;
+        }
+            break;
+        case SLPlayerLoopStyleSingleCycle: {
+            _loopStyle = SLPlayerLoopStyleRandom;
+        }
+            break;
+        case SLPlayerLoopStyleRandom: {
+            _loopStyle = SLPlayerLoopStyleLooping;
+        }
+            break;
+    }
+    self.musicControl.loopStyle = _loopStyle;
+}
+
+- (void)p_switchSongsPrev:(BOOL)isPrev {
+    switch (_loopStyle) {
+        case SLPlayerLoopStyleLooping:
+            [self p_loopingSwitchPrev:isPrev];
+            break;
+        case SLPlayerLoopStyleSingleCycle:
+            [self p_singleCycleSwitch];
+            break;
+        case SLPlayerLoopStyleRandom:
+            [self p_randomSwitch:isPrev];
+            break;
+    }
+}
+
+- (void)musicControl:(SLMusicControlView *)control didClickPrevious:(UIButton *)prevBtn {
+    [self p_switchSongsPrev:YES];
+}
+
+- (void)musicControl:(SLMusicControlView *)control didClickNext:(UIButton *)nextBtn {
+    [self p_switchSongsPrev:NO];
+}
+
+- (void)musicControl:(SLMusicControlView *)control didClickList:(UIButton *)listBtn {
+    SLMusicListView *list = [[SLMusicListView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    list.musicList = self.musicList;
+    list.currentModel = _currentModel;
+    [self.view addSubview:list];
+    [list showUpList];
+}
+- (void)musicControl:(SLMusicControlView *)control didClickLike:(UIButton *)likeBtn {
+    
+}
+- (void)musicControl:(SLMusicControlView *)control didClickDownload:(UIButton *)downloadBtn {
+    
+}
+- (void)musicControl:(SLMusicControlView *)control didClickMore:(UIButton *)moreBtn {
+    
 }
 
 - (void)musicControl:(SLMusicControlView *)control didSliderTapped:(CGFloat)value {

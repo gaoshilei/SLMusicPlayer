@@ -7,42 +7,15 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "SLMusicListView.h"
 
-@interface SLMusicModel : NSObject
-
-/** 歌曲名称 */
-@property (nonatomic, copy  ) NSString *songName;
-/** 歌手名称 */
-@property (nonatomic, copy  ) NSString *singerName;
-/** 歌曲链接 */
-@property (nonatomic, copy  ) NSString *songLink;
-/** 唱片封面图片 */
-@property (nonatomic, copy  ) NSString *songDiscPic;
-/** 会被虚化的背景图片（可不传）*/
-@property (nonatomic, copy  ) NSString *songBgPic;
-/** 是否喜欢 */
-@property (nonatomic, assign) BOOL isLike;
+@protocol SLMusicPlayerDelegate<NSObject>
 
 @end
 
-typedef NS_ENUM(NSInteger, SLPlayerPlayStyle) {
-    /*
-     循环播放
-     **/
-    SLPlayerPlayStyleLoop           = 0,
-    /*
-     单曲循环
-     **/
-    SLPlayerPlayStyleSingleCycle    = 1,
-    /*
-     随机播放
-     **/
-    SLPlayerPlayStyleRandom         = 2,
-};
-
 @interface SLMusicPlayerController : UIViewController
 
-@property (nonatomic, strong) SLMusicModel *songModel;
+@property (nonatomic, copy) NSArray <SLMusicModel*> *musicList;
 
 + (instancetype)shareInstance;
 

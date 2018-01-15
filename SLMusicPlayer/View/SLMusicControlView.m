@@ -313,35 +313,30 @@ const CGFloat bottomWrapperH    = 75.f;
     if ([self.delegate respondsToSelector:@selector(musicControl:didClickLoop:)]) {
         [self.delegate musicControl:self didClickLoop:button];
     }
-    NSLog(@"%s",__func__);
 }
 
 - (void)p_prevBtnClick:(UIButton *)button {
     if ([self.delegate respondsToSelector:@selector(musicControl:didClickPrevious:)]) {
         [self.delegate musicControl:self didClickPrevious:button];
     }
-    NSLog(@"%s",__func__);
 }
 
 - (void)p_playBtnClick:(UIButton *)button {
     if ([self.delegate respondsToSelector:@selector(musicControl:didClickPlay:)]) {
         [self.delegate musicControl:self didClickPlay:button];
     }
-    NSLog(@"%s",__func__);
 }
 
 - (void)p_nextBtnClick:(UIButton *)button {
     if ([self.delegate respondsToSelector:@selector(musicControl:didClickNext:)]) {
         [self.delegate musicControl:self didClickNext:button];
     }
-    NSLog(@"%s",__func__);
 }
 
 - (void)p_listBtnClick:(UIButton *)button {
     if ([self.delegate respondsToSelector:@selector(musicControl:didClickList:)]) {
         [self.delegate musicControl:self didClickList:button];
     }
-    NSLog(@"%s",__func__);
 }
 
 #pragma mark - public method
@@ -357,7 +352,7 @@ const CGFloat bottomWrapperH    = 75.f;
 
 - (void)stopPlay {
     self.playBtn.selected = NO;
-    self.totalTime = nil;
+    _totalTime = nil;
 }
 
 - (void)startPlay {
@@ -380,6 +375,26 @@ const CGFloat bottomWrapperH    = 75.f;
 - (void)setCurrentValue:(CGFloat)currentValue {
     _currentValue = currentValue;
     self.slider.currentValue = currentValue;
+}
+
+- (void)setLoopStyle:(SLPlayerLoopStyle)loopStyle {
+    switch (loopStyle) {
+        case SLPlayerLoopStyleLooping: {
+            [self.loopBtn setImage:[UIImage imageNamed:@"cm2_icn_loop"] forState:UIControlStateNormal];
+            [self.loopBtn setImage:[UIImage imageNamed:@"cm2_icn_loop_prs"] forState:UIControlStateHighlighted];
+        }
+            break;
+        case SLPlayerLoopStyleSingleCycle: {
+            [self.loopBtn setImage:[UIImage imageNamed:@"cm2_icn_one"] forState:UIControlStateNormal];
+            [self.loopBtn setImage:[UIImage imageNamed:@"cm2_icn_one_prs"] forState:UIControlStateHighlighted];
+        }
+            break;
+        case SLPlayerLoopStyleRandom: {
+            [self.loopBtn setImage:[UIImage imageNamed:@"cm2_icn_shuffle"] forState:UIControlStateNormal];
+            [self.loopBtn setImage:[UIImage imageNamed:@"cm2_icn_shuffle_prs"] forState:UIControlStateHighlighted];
+        }
+            break;
+    }
 }
 
 #pragma mark - SLMusicSliderDelegate

@@ -8,6 +8,21 @@
 
 #import <UIKit/UIKit.h>
 
+typedef NS_ENUM(NSInteger, SLPlayerLoopStyle) {
+    /*
+     循环播放
+     **/
+    SLPlayerLoopStyleLooping        = 0,
+    /*
+     单曲循环
+     **/
+    SLPlayerLoopStyleSingleCycle    = 1,
+    /*
+     随机播放
+     **/
+    SLPlayerLoopStyleRandom         = 2,
+};
+
 @class SLMusicControlView;
 @protocol SLMusicControlDelegate<NSObject>
 
@@ -39,5 +54,6 @@
 - (void)stopPlay;
 
 - (void)showAndHideBufferIndicator;
+- (void)setLoopStyle:(SLPlayerLoopStyle)loopStyle;
 
 @end

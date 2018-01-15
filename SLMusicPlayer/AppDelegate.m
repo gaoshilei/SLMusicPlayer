@@ -8,6 +8,7 @@
 
 #import "AppDelegate.h"
 #import "SLMusicPlayerController.h"
+#import <MJExtension.h>
 
 @interface AppDelegate ()
 
@@ -18,10 +19,17 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     SLMusicPlayerController *player = [SLMusicPlayerController shareInstance];
+    player.musicList = [self musicList];
     self.window = [[UIWindow alloc] init];
     [self.window setRootViewController:player];
     [self.window makeKeyAndVisible];
     return YES;
+}
+
+- (NSArray *)musicList {
+    NSString *musicPath = [[NSBundle mainBundle] pathForResource:@"musicList" ofType:@"json"];
+    NSData *data = [NSData dataWithContentsOfFile:musicPath];
+    return [SLMusicModel mj_objectArrayWithKeyValuesArray:data];
 }
 
 
