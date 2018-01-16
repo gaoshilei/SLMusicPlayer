@@ -297,17 +297,27 @@ static SLMusicPlayerController *shareVC = nil;
 #pragma mark - Public Method
 
 - (void)setMusicList:(NSArray<SLMusicModel *> *)musicList {
+    //传入新的歌单，清空之前的歌曲歌单
+    _currentModel = nil;
     _musicList = musicList;
-    if (!_currentModel && _initialIndex && musicList.count>_initialIndex
-        ) {
-        _currentModel = self.musicList[_initialIndex];
-    }
+//    if (!_currentModel && _initialIndex && musicList.count>_initialIndex
+//        ) {
+//        _currentModel = self.musicList[_initialIndex];
+//    }
+//    if (_player) {
+//        [self p_switchSongWithModel:_currentModel];
+//    }
 }
 
 - (void)playAtIndex:(NSInteger)index {
     _initialIndex = index;
     if (self.musicList.count>index) {
         _currentModel = self.musicList[index];
+    }else {
+        _currentModel = self.musicList[0];
+    }
+    if (_player) {
+        [self p_switchSongWithModel:_currentModel];
     }
 }
 
