@@ -49,6 +49,7 @@ typedef NS_ENUM(NSInteger, SLPlayerLoopStyle) {
 @property (nonatomic, copy  ) NSString *totalTime;
 @property (nonatomic, assign) CGFloat  currentValue;
 @property (nonatomic, weak  ) id<SLMusicControlDelegate> delegate;
+@property (nonatomic, assign) BOOL  isLike;
 
 - (void)startPlay;
 - (void)stopPlay;

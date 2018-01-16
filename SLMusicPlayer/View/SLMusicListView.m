@@ -13,6 +13,7 @@
 
 #define kScreenW [UIScreen mainScreen].bounds.size.width
 #define kScreenH [UIScreen mainScreen].bounds.size.height
+#define kCellHeight 48.f
 
 static const NSString *SLMusicReuseCellIdentifier = @"SLMusicReuseCellIdentifier";
 
@@ -56,10 +57,10 @@ static const NSString *SLMusicReuseCellIdentifier = @"SLMusicReuseCellIdentifier
 @interface SLMusicListCell : UITableViewCell
 
 @property (nonatomic, strong) SLMusicModel *model;
-@property (nonatomic, assign) BOOL isHightlighted;
 @property (nonatomic, strong) UILabel   *nameLabel;
 @property (nonatomic, strong) UIView    *indicator;
-
+@property (nonatomic, assign, setter=setCellSelected:) BOOL isSelected;
+@property (nonatomic, copy  ) void (^downloadBlock)(SLMusicModel *model);
 
 @end
 
@@ -68,6 +69,7 @@ static const NSString *SLMusicReuseCellIdentifier = @"SLMusicReuseCellIdentifier
 - (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
     if (self = [super initWithStyle:style reuseIdentifier:reuseIdentifier]) {
         [self p_initSubviews];
+        self.selectionStyle = UITableViewCellSelectionStyleNone;
     }
     return self;
 }
@@ -120,16 +122,21 @@ static const NSString *SLMusicReuseCellIdentifier = @"SLMusicReuseCellIdentifier
     _indicator.hidden = YES;
 }
 
-- (void)setIsHightlighted:(BOOL)isHightlighted {
-    _isHightlighted = isHightlighted;
-    _indicator.hidden = !isHightlighted;
-    if (_isHightlighted) {
+- (void)setCellSelected:(BOOL)isSelected {
+    _isSelected = isSelected;
+    _indicator.hidden = !isSelected;
+    if (isSelected) {
         _nameLabel.textColor = [UIColor colorWithRed:198/255.0 green:81/255.0 blue:64/255.0 alpha:1];
+    }else {
+        _nameLabel.textColor = [UIColor blackColor];
     }
 }
 
 - (void)p_downloadBtnClick:(UIButton *)btn {
     NSLog(@"%s",__func__);
+    if (self.downloadBlock) {
+        self.downloadBlock(_model);
+    }
 }
 
 @end
@@ -156,10 +163,22 @@ static const NSString *SLMusicReuseCellIdentifier = @"SLMusicReuseCellIdentifier
     
     [self addSubview:self.bgwrapper];
     [self addSubview:self.listView];
+    self.alpha = .95f;
     
     [self.bgwrapper mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.top.right.bottom.equalTo(self);
     }];
+}
+
+- (void)didMoveToSuperview {
+    CGFloat offsetY = kCellHeight * _currentIndex;
+    CGFloat maxOffsetY = kCellHeight*(self.musicList.count+1) - self.listView.frame.size.height;
+    if (offsetY > maxOffsetY) {
+        offsetY = maxOffsetY;
+    }
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.1f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self.listView setContentOffset:CGPointMake(0, offsetY) animated:NO];
+    });
 }
 
 #pragma mark - lazy load
@@ -188,6 +207,11 @@ static const NSString *SLMusicReuseCellIdentifier = @"SLMusicReuseCellIdentifier
 }
 
 #pragma mark - private method
+- (void)p_setView:(UIView *)view positionY:(CGFloat)y {
+    CGRect frame = view.frame;
+    frame.origin.y = y;
+    view.frame = frame;
+}
 
 - (void)p_listViewDismiss {
     [UIView animateWithDuration:.35f animations:^{
@@ -208,23 +232,34 @@ static const NSString *SLMusicReuseCellIdentifier = @"SLMusicReuseCellIdentifier
         cell = [[SLMusicListCell alloc] init];
     }
     cell.model = self.musicList[indexPath.row];
-    cell.isHightlighted = _currentIndex == indexPath.row;
+    cell.isSelected = _currentIndex == indexPath.row;
+    __weak typeof(self) weakSelf = self;
+    [cell setDownloadBlock:^(SLMusicModel *model) {
+        if ([self.delegate respondsToSelector:@selector(downloadBtnClickedAtIndex:currentModel:)]) {
+            NSInteger currentIndex = [weakSelf.musicList indexOfObject:model];
+            [self.delegate downloadBtnClickedAtIndex:currentIndex currentModel:model];
+        }
+    }];
     return cell;
 }
 
 #pragma mark - UITableViewDelegate
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 48;
+    return kCellHeight;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    return 48;
+    return kCellHeight;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
+    return 0;
 }
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    UIView *header = [[UIView alloc] init];
+    UIView *header = [[UIView alloc] initWithFrame:CGRectZero];
     header.backgroundColor = [UIColor whiteColor];
-    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(30, 0, 100, 48)];
+    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(30, 0, 100, kCellHeight)];
     [header addSubview:titleLabel];
     titleLabel.textAlignment = NSTextAlignmentLeft;
     titleLabel.text = @"播放列表";
@@ -240,10 +275,18 @@ static const NSString *SLMusicReuseCellIdentifier = @"SLMusicReuseCellIdentifier
     return header;
 }
 
-- (void)p_setView:(UIView *)view positionY:(CGFloat)y {
-    CGRect frame = view.frame;
-    frame.origin.y = y;
-    view.frame = frame;
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if ([self.delegate respondsToSelector:@selector(selectItemAtIndex:selectedModel:)]) {
+        //取消之前cell的高亮
+        SLMusicListCell *highlightedCell = [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:_currentIndex inSection:0]];
+        highlightedCell.isSelected = NO;
+        //将当前cell设置高亮
+        SLMusicListCell *currentCell = [tableView cellForRowAtIndexPath:indexPath];
+        currentCell.isSelected = YES;
+        _currentIndex = indexPath.row;
+        [self.delegate selectItemAtIndex:_currentIndex selectedModel:currentCell.model];
+        [self p_listViewDismiss];
+    }
 }
 
 #pragma mark - public method

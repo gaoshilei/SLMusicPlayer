@@ -168,8 +168,11 @@ const CGFloat bottomWrapperH    = 75.f;
 - (UIButton *)likeBtn {
     if (!_likeBtn) {
         _likeBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-        [_likeBtn setImage:[UIImage imageNamed:@"cm2_play_icn_love"] forState:UIControlStateNormal];
-        [_likeBtn setImage:[UIImage imageNamed:@"cm2_play_icn_love_prs"] forState:UIControlStateHighlighted];
+        if (_isLike) {
+            [self setuplikedBtn];
+        }else{
+            [self setuplikeBtn];
+        }
         [_likeBtn addTarget:self action:@selector(p_likeBtnClick:) forControlEvents:UIControlEventTouchUpInside];
     }
     return _likeBtn;
@@ -286,9 +289,20 @@ const CGFloat bottomWrapperH    = 75.f;
     return _slider;
 }
 
+- (void)setuplikeBtn {
+    [_likeBtn setImage:[UIImage imageNamed:@"cm2_play_icn_love"] forState:UIControlStateNormal];
+    [_likeBtn setImage:[UIImage imageNamed:@"cm2_play_icn_love_prs"] forState:UIControlStateHighlighted];
+}
+
+- (void)setuplikedBtn {
+    [_likeBtn setImage:[UIImage imageNamed:@"cm2_play_icn_loved"] forState:UIControlStateNormal];
+    [_likeBtn setImage:[UIImage imageNamed:@"cm2_play_icn_loved_prs"] forState:UIControlStateHighlighted];
+}
+
 #pragma mark - User Interaction
 
 - (void)p_likeBtnClick:(UIButton *)button {
+    
     if ([self.delegate respondsToSelector:@selector(musicControl:didClickLike:)]) {
         [self.delegate musicControl:self didClickLike:button];
     }
@@ -394,6 +408,15 @@ const CGFloat bottomWrapperH    = 75.f;
             [self.loopBtn setImage:[UIImage imageNamed:@"cm2_icn_shuffle_prs"] forState:UIControlStateHighlighted];
         }
             break;
+    }
+}
+
+- (void)setIsLike:(BOOL)isLike {
+    _isLike = isLike;
+    if (isLike) {
+        [self setuplikedBtn];
+    }else {
+        [self setuplikeBtn];
     }
 }
 

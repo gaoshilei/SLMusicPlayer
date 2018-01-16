@@ -11,11 +11,19 @@
 
 @protocol SLMusicPlayerDelegate<NSObject>
 
+/** 下载歌曲 */
+- (void)slMusicPlayerClickDownloadSong:(SLMusicModel *)model;
+/** 点击更多 */
+- (void)slMusicPlayerClickMore:(SLMusicModel *)model;
+/** 点击喜欢 */
+- (void)slMusicPlayerClickLike:(SLMusicModel *)model;
+
 @end
 
 @interface SLMusicPlayerController : UIViewController
 
 @property (nonatomic, copy) NSArray <SLMusicModel*> *musicList;
+@property (nonatomic, weak) id<SLMusicPlayerDelegate> delegate;
 
 + (instancetype)shareInstance;
 

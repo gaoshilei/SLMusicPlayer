@@ -25,10 +25,18 @@
 
 @end
 
+@protocol SLMusicListDelegate<NSObject>
+
+- (void)downloadBtnClickedAtIndex:(NSInteger)index currentModel:(SLMusicModel *)model;
+- (void)selectItemAtIndex:(NSInteger)index selectedModel:(SLMusicModel *)model;
+
+@end
+
 @interface SLMusicListView : UIView
 
 @property (nonatomic, strong) NSArray<SLMusicModel*> *musicList;
 @property (nonatomic, strong) SLMusicModel *currentModel;
+@property (nonatomic, weak  ) id<SLMusicListDelegate> delegate;
 
 - (void)showUpList;
 

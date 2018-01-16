@@ -14,7 +14,7 @@
 #import <UIImageView+WebCache.h>
 
 
-@interface SLMusicPlayerController ()<SLMusicControlDelegate,SLPlayerDelegate> {
+@interface SLMusicPlayerController ()<SLMusicControlDelegate,SLPlayerDelegate,SLMusicListDelegate> {
     BOOL _isDragging;
 }
 
@@ -141,6 +141,7 @@ static SLMusicPlayerController *shareVC = nil;
     self.singerNameLabel.text = model.music_artist;
     [self.player setPlayUrlStr:model.music_link];
     [self p_startPlay];
+    self.musicControl.isLike = model.isLike;
 }
 
 #pragma mark - lazy load
@@ -246,14 +247,21 @@ static SLMusicPlayerController *shareVC = nil;
     }
     _currentModel = self.musicList[targetIndex];
     NSLog(@"===现在播放第%ld首歌曲===",targetIndex+1);
-    [self p_stopPlay];
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.1f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [self p_initSongData:_currentModel];
-    });
+    [self p_switchSongWithModel:_currentModel];
 }
 
 - (void)p_singleCycleSwitch {
     [self p_replay];
+}
+
+- (void)p_switchSongWithModel:(SLMusicModel *)model {
+    if (!model) {
+        return;
+    }
+    [self p_stopPlay];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.1f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self p_initSongData:model];
+    });
 }
 
 - (void)p_randomSwitch:(BOOL)isPrev {
@@ -275,10 +283,7 @@ static SLMusicPlayerController *shareVC = nil;
     }
     NSLog(@"random>>>currentIndex：%ld===targetIndex：%ld",currentIndex,targetIndex);
     _currentModel = self.musicList[targetIndex];
-    [self p_stopPlay];
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.1f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [self p_initSongData:_currentModel];
-    });
+    [self p_switchSongWithModel:_currentModel];
 }
 
 - (void)p_replay {
@@ -347,17 +352,27 @@ static SLMusicPlayerController *shareVC = nil;
     SLMusicListView *list = [[SLMusicListView alloc] initWithFrame:[UIScreen mainScreen].bounds];
     list.musicList = self.musicList;
     list.currentModel = _currentModel;
+    list.delegate = self;
     [self.view addSubview:list];
     [list showUpList];
 }
 - (void)musicControl:(SLMusicControlView *)control didClickLike:(UIButton *)likeBtn {
-    
+    if ([self.delegate respondsToSelector:@selector(slMusicPlayerClickLike:)]) {
+        _currentModel.isLike = !_currentModel.isLike;
+        self.musicControl.isLike = _currentModel.isLike;
+        [self.delegate slMusicPlayerClickLike:_currentModel];
+    }
 }
 - (void)musicControl:(SLMusicControlView *)control didClickDownload:(UIButton *)downloadBtn {
-    
+    if ([self.delegate respondsToSelector:@selector(slMusicPlayerClickDownloadSong:)]) {
+        [self.delegate slMusicPlayerClickDownloadSong:_currentModel];
+    }
 }
+
 - (void)musicControl:(SLMusicControlView *)control didClickMore:(UIButton *)moreBtn {
-    
+    if ([self.delegate respondsToSelector:@selector(slMusicPlayerClickMore:)]) {
+        [self.delegate slMusicPlayerClickMore:_currentModel];
+    }
 }
 
 - (void)musicControl:(SLMusicControlView *)control didSliderTapped:(CGFloat)value {
@@ -418,4 +433,18 @@ static SLMusicPlayerController *shareVC = nil;
 - (void)slPlayerIsBuffering:(SLPlayer *)player {
     [self.musicControl showAndHideBufferIndicator];
 }
+
+#pragma mark - SLMusicListDelegate
+
+- (void)selectItemAtIndex:(NSInteger)index selectedModel:(SLMusicModel *)model {
+    _currentModel = model;
+    [self p_switchSongWithModel:_currentModel];
+}
+
+- (void)downloadBtnClickedAtIndex:(NSInteger)index currentModel:(SLMusicModel *)model {
+    if ([self.delegate respondsToSelector:@selector(slMusicPlayerClickDownloadSong:)]) {
+        [self.delegate slMusicPlayerClickDownloadSong:model];
+    }
+}
+
 @end
