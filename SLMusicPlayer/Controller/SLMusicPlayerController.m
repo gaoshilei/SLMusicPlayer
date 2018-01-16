@@ -28,6 +28,7 @@
 @property (nonatomic, assign) double totalTime;
 @property (nonatomic, assign) SLPlayerLoopStyle loopStyle;
 @property (nonatomic, strong) SLMusicModel *currentModel;
+@property (nonatomic, assign) NSInteger initialIndex;
 
 @end
 
@@ -60,6 +61,10 @@ static SLMusicPlayerController *shareVC = nil;
     _isDragging = NO;
     _loopStyle = SLPlayerLoopStyleLooping;
     [self p_initSubviews];
+    if (!_currentModel) {
+        _currentModel = self.musicList[0];
+    }
+    [self p_initSongData:_currentModel];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -74,10 +79,6 @@ static SLMusicPlayerController *shareVC = nil;
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    if (!self.player.isPlaying) {
-        _currentModel = self.musicList[0];
-        [self p_initSongData:_currentModel];
-    }
 }
 
 - (void)p_initSubviews {
@@ -297,6 +298,17 @@ static SLMusicPlayerController *shareVC = nil;
 
 - (void)setMusicList:(NSArray<SLMusicModel *> *)musicList {
     _musicList = musicList;
+    if (!_currentModel && _initialIndex && musicList.count>_initialIndex
+        ) {
+        _currentModel = self.musicList[_initialIndex];
+    }
+}
+
+- (void)playAtIndex:(NSInteger)index {
+    _initialIndex = index;
+    if (self.musicList.count>index) {
+        _currentModel = self.musicList[index];
+    }
 }
 
 #pragma mark - SLMusicControlDelegate

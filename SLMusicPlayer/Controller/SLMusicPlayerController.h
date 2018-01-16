@@ -27,4 +27,7 @@
 
 + (instancetype)shareInstance;
 
+/** 从第几首歌开始播放，注意：索引值不能超过musicList */
+- (void)playAtIndex:(NSInteger)index;
+
 @end
