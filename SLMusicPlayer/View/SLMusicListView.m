@@ -173,9 +173,13 @@ static const NSString *SLMusicReuseCellIdentifier = @"SLMusicReuseCellIdentifier
 - (void)didMoveToSuperview {
     CGFloat offsetY = kCellHeight * _currentIndex;
     CGFloat maxOffsetY = kCellHeight*(self.musicList.count+1) - self.listView.frame.size.height;
+    if (maxOffsetY<0) {
+        return;
+    }
     if (offsetY > maxOffsetY) {
         offsetY = maxOffsetY;
     }
+    NSLog(@"列表需要偏移的距离为：%.2f",offsetY);
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.1f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [self.listView setContentOffset:CGPointMake(0, offsetY) animated:NO];
     });
